@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TSP Solver</title>
+  <style>
+    #map {
+      height: 500px;
+      width: 100%;
+    }
+  </style>
+  <!-- Include Leaflet CSS and JavaScript -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+  <h1>TSP Solver</h1>
+
+  <div>
+    <label for="city-name">City Name:</label>
+    <input type="text" id="city-name">
+    <label for="city-x">X Coordinate:</label>
+    <input type="number" id="city-x">
+    <label for="city-y">Y Coordinate:</label>
+    <input type="number" id="city-y">
+    <button onclick="addCity()">Add City</button>
+  </div>
+
+  <div>
+    <h2>City List:</h2>
+    <ul id="city-list"></ul>
+  </div>
+
+  <div>
+    <button onclick="solveTSP()">Solve TSP</button>
+  </div>
+
+  <div>
+    <h2>Shortest Route:</h2>
+    <ul id="shortest-route"></ul>
+    <p id="shortest-distance"></p>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    // Initialize the Leaflet map
+    const map = L.map('map').setView([0, 0], 2);
+
+    // Create and add the OpenStreetMap tile layer to the map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Arrays to store cities and markers
+    let cities = [];
+    let markers = [];
+
+    // Function to add a city
+    function addCity() {
+      const cityNameInput = document.getElementById('city-name');
+      const cityXInput = document.getElementById('city-x');
+      const cityYInput = document.getElementById('city-y');
+
+      const city = {
+        name: cityNameInput.value,
+        x: parseFloat(cityXInput.value),
+        y: parseFloat(cityYInput.value),
+      };
+
+      cities.push(city);
+      addMarker(city);
+      updateCityList();
+      clearCityInputs();
+    }
+
+    // Function to update the city list
+    function updateCityList() {
+      const cityList = document.getElementById('city-list');
+      cityList.innerHTML = '';
+
+      cities.forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = `${city.name} (${city.x}, ${city.y})`;
+        cityList.appendChild(li);
+      });
+    }
+
+    // Function to clear city inputs
+    function clearCityInputs() {
+      document.getElementById('city-name').value = '';
+      document.getElementById('city-x').value = '';
+      document.getElementById('city-y').value = '';
+    }
+
+    // Function to add a marker to the map for a city
+    function addMarker(city) {
+      const marker = L.marker([city.x, city.y]).addTo(map);
+      markers.push(marker);
+    }
+
+    // Function to solve the TSP
+    function solveTSP() {
+      const shortestRoute = findShortestRoute(cities);
+      const shortestDistance = calculateDistance(shortestRoute);
+
+      displayShortestRoute(shortestRoute);
+      displayShortestDistance(shortestDistance);
+      displayRouteOnMap(shortestRoute);
+    }
+
+    // Function to calculate the distance between two cities
+    function calculateDistance(city1, city2) {
+      const dx = city2.x - city1.x;
+      const dy = city2.y - city1.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Function to find the shortest route using the Nearest Neighbor algorithm
+    function findShortestRoute(cities) {
+      const numCities = cities.length;
+      const visited = new Array(numCities).fill(false);
+      const route = [];
+      let currentCity = 0; // Start from the first city
+
+      visited[currentCity] = true;
+      route.push(cities[currentCity]);
+
+      while (route.length < numCities) {
+        let nearestCity = null;
+        let shortestDistance = Infinity;
+
+        for (let i = 0; i < numCities; i++) {
+          if (!visited[i]) {
+            const distance = calculateDistance(cities[currentCity], cities[i]);
+
+            if (distance < shortestDistance) {
+              shortestDistance = distance;
+              nearestCity = i;
+            }
+          }
+        }
+
+        currentCity = nearestCity;
+        visited[currentCity] = true;
+        route.push(cities[currentCity]);
+      }
+
+      // Return to the starting city
+      route.push(cities[0]);
+
+      return route;
+    }
+
+    // Function to display the shortest route
+    function displayShortestRoute(route) {
+      const shortestRouteElement = document.getElementById('shortest-route');
+      shortestRouteElement.innerHTML = '';
+
+      route.forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = city.name;
+        shortestRouteElement.appendChild(li);
+      });
+    }
+
+    // Function to display the shortest 
+     function distance(displayDistance) {
+      const shortestDistanceElement = document.getElementById('shortest-distance');
+      shortestDistanceElement.textContent = `Shortest distance: ${distance.toFixed(2)}`;
+    }
+
+    // Function to display the route on the map
+    function displayRouteOnMap(route) {
+      // Clear existing route
+      markers.forEach(marker => {
+        marker.removeFrom(map);
+      });
+      markers = [];
+
+      const routeCoordinates = route.map(city => [city.x, city.y]);
+      const polylineOptions = {
+        color: '#FF0000',
+        weight: 2,
+      };
+
+      L.polyline(routeCoordinates, polylineOptions).addTo(map);
+
+      // Add markers for the cities
+      route.forEach(city => {
+        addMarker(city);
+      });
+    }
+  </script>
+</body>
+</html>

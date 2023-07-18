@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TSP Solver</title>
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+  <!-- Include Leaflet CSS and JavaScript -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+  <h1>TSP Solver</h1>
+
+  <div>
+    <label for="city-name">City Name:</label>
+    <input type="text" id="city-name">
+    <label for="city-x">X Coordinate:</label>
+    <input type="number" id="city-x">
+    <label for="city-y">Y Coordinate:</label>
+    <input type="number" id="city-y">
+    <button onclick="addCity()">Add City</button>
+  </div>
+
+  <div>
+    <h2>City List:</h2>
+    <ul id="city-list"></ul>
+  </div>
+
+  <div>
+    <button onclick="solveTSP()">Solve TSP</button>
+  </div>
+
+  <div>
+    <h2>Shortest Route:</h2>
+    <ul id="shortest-route"></ul>
+    <p id="shortest-distance"></p>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    let cities = [];
+    let map;
+    let routeLayer;
+
+    function addCity() {
+      const cityNameInput = document.getElementById('city-name');
+      const cityXInput = document.getElementById('city-x');
+      const cityYInput = document.getElementById('city-y');
+
+      const city = {
+        name: cityNameInput.value,
+        x: parseInt(cityXInput.value),
+        y: parseInt(cityYInput.value),
+      };
+
+      cities.push(city);
+      updateCityList();
+      clearCityInputs();
+      addMarker(city);
+    }
+
+    function updateCityList() {
+      const cityList = document.getElementById('city-list');
+      cityList.innerHTML = '';
+
+      cities.forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = `${city.name} (${city.x}, ${city.y})`;
+        cityList.appendChild(li);
+      });
+    }
+
+    function clearCityInputs() {
+      document.getElementById('city-name').value = '';
+      document.getElementById('city-x').value = '';
+      document.getElementById('city-y').value = '';
+    }
+
+    function solveTSP() {
+      const shortestRoute = findShortestRoute(cities);
+      const shortestDistance = calculateDistance(shortestRoute);
+
+      displayShortestRoute(shortestRoute);
+      displayShortestDistance(shortestDistance);
+      displayRouteOnMap(shortestRoute);
+    }
+
+    function calculateDistance(points) {
+      // Calculate the distance between two points
+      function distance(point1, point2) {
+        const dx = point1.x - point2.x;
+        const dy = point1.y - point2.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      let totalDistance = 0;
+
+      for (let i = 0; i < points.length - 1; i++) {
+        const point1 = points[i];
+        const point2 = points[i + 1];
+        totalDistance += distance(point1, point2);
+      }
+
+      // Add the distance from the last point to the first point
+      totalDistance += distance(points[points.length - 1], points[0]);
+
+      return totalDistance;
+    }
+
+    function findShortestRoute(cities) {
+      // Implement your algorithm to find the shortest route here
+      // This function should return an array representing the shortest route
+
+      // Example implementation: Return the cities in the same order they were added
+      return cities;
+    }
+
+    function displayShortestRoute(route) {
+      const shortestRouteElement = document.getElementById('shortest-route');
+      shortestRouteElement.innerHTML = '';
+
+      route.forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = city.name;
+        shortestRouteElement.appendChild(li);
+      });
+    }
+
+    function displayShortestDistance(distance) {
+      const shortestDistanceElement = document.getElementById('shortest-distance');
+      shortestDistanceElement.textContent = `Shortest distance: ${distance.toFixed(2)}`;
+    }
+
+    function displayRouteOnMap(route) {
+      if (routeLayer) {
+        map.removeLayer(routeLayer);
+      }
+
+      const routeCoordinates = route.map(city => [city.x, city.y]);
+      const polylineOptions = {
+        color: '#FF0000',
+        weight: 2,
+      };
+
+      routeLayer = L.polyline(routeCoordinates, polylineOptions).addTo(map);
+      map.fitBounds(routeLayer.getBounds());
+    }
+
+    function addMarker(city) {
+      const markerOptions = {
+        title: city.name,
+      };
+
+      L.marker([city.x, city.y], markerOptions).addTo(map);
+    }
+
+    // Initialize the map
+    function initMap() {
+      map = L.map('map').setView([0, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(map);
+    }
+
+    // Call the initMap function to initialize the map
+    initMap();
+  </script>
+</body>
+</html>
