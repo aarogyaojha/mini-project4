@@ -115,9 +115,49 @@
         return totalDistance;
       }
 
-      // YET TOCOMPLETE
       function findShortestRoute(cities) {
-        return cities;
+        const numCities = cities.length;
+      
+        function calculateDistance(city1, city2) {
+          const dx = city2.x - city1.x;
+          const dy = city2.y - city1.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+      
+        function calculateRouteDistance(route) {
+          let totalDistance = 0;
+      
+          for (let i = 0; i < route.length - 1; i++) {
+            const city1 = route[i];
+            const city2 = route[i + 1];
+            totalDistance += calculateDistance(city1, city2);
+          }
+      
+          totalDistance += calculateDistance(route[numCities - 1], route[0]);
+      
+          return totalDistance;
+        }
+      
+        let shortestRoute = null;
+        let shortestDistance = Infinity;
+      
+        function permute(cities, startIndex) {
+          if (startIndex === numCities) {
+            const currentDistance = calculateRouteDistance(cities);
+            if (currentDistance < shortestDistance) {
+              shortestDistance = currentDistance;
+              shortestRoute = cities.slice();
+            }
+          }
+      
+          for (let i = startIndex; i < numCities; i++) {
+            [cities[startIndex], cities[i]] = [cities[i], cities[startIndex]];
+            permute(cities.slice(), startIndex + 1);
+          }
+        }
+      
+        permute(cities, 0);
+        return shortestRoute;
       }
 
       function displayShortestRoute(route) {
